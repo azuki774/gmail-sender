@@ -29,6 +29,7 @@ type GmailClient interface {
 func (u *Usecase) Send(ctx context.Context) (err error) {
 	oa, err := u.TokenRepo.Get()
 	if err != nil {
+		u.Logger.Error("failed to get token from DB", zap.String("err", err.Error()), zap.Error(err))
 		return err
 	}
 	u.Logger.Info("get access token from DB")
@@ -37,6 +38,7 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 		u.Logger.Info("access token expired")
 		err = u.RefineNewToken(ctx)
 		if err != nil {
+			u.Logger.Error("failed to fetch new token", zap.String("err", err.Error()), zap.Error(err))
 			return err
 		}
 	}
@@ -66,12 +68,14 @@ func (u *Usecase) RefineNewToken(ctx context.Context) (err error) {
 	t := time.Now()
 	resp, err := u.GmailClient.FetchNewAccessToken(oa.RefreshToken)
 	if err != nil {
+		u.Logger.Error("failed to fetch new token", zap.String("err", err.Error()), zap.Error(err))
 		return err
 	}
 
 	oau := model.NewOAuth2Update(oa, resp, t)
 	err = u.TokenRepo.Notify(oau)
 	if err != nil {
+		u.Logger.Error("failed to notify new token to DB", zap.String("err", err.Error()), zap.Error(err))
 		return err
 	}
 
