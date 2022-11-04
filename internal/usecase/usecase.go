@@ -31,8 +31,10 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+	u.Logger.Info("get access token from DB")
 
 	if oa.ExpiredAt.Before(time.Now()) || oa.AccessToken == "" {
+		u.Logger.Info("access token expired")
 		err = u.RefineNewToken(ctx)
 		if err != nil {
 			return err
@@ -58,6 +60,7 @@ func (u *Usecase) RefineNewToken(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+	u.Logger.Info("get access token from DB")
 
 	// access token refresh
 	t := time.Now()
@@ -72,6 +75,7 @@ func (u *Usecase) RefineNewToken(ctx context.Context) (err error) {
 		return err
 	}
 
+	u.Logger.Info("update access token")
 	u.GmailClient.SetToken(oauth2.Token{
 		AccessToken: resp.AccessToken,
 		TokenType:   "Bearer",
