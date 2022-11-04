@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"gmail-sender/internal/model"
 
@@ -26,7 +27,7 @@ func (m *MockGmailClient) FetchNewAccessToken(refreshToken string) (resp model.R
 	return resp, nil
 }
 
-func (m *MockGmailClient) Send(b []byte) (err error) {
+func (m *MockGmailClient) Send(ctx context.Context, b []byte) (err error) {
 	if m.ErrSend {
 		return fmt.Errorf("error")
 	}
@@ -34,5 +35,4 @@ func (m *MockGmailClient) Send(b []byte) (err error) {
 }
 
 func (m *MockGmailClient) SetToken(tk oauth2.Token) {
-	return
 }

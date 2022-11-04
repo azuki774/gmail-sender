@@ -2,6 +2,9 @@ package factory
 
 import (
 	"fmt"
+	"gmail-sender/internal/client"
+	"gmail-sender/internal/server"
+	"gmail-sender/internal/usecase"
 	"os"
 	"time"
 
@@ -41,4 +44,23 @@ func NewGmailConf() *oauth2.Config {
 	}
 
 	return conf
+}
+
+func NewGmailClient() *client.GmailClient {
+	gc := client.GmailClient{
+		Conf: NewGmailConf(),
+	}
+	return &gc
+}
+
+func NewTokenRepo(host string, port string) *client.TokenRepo {
+	return &client.TokenRepo{Host: host, Port: port}
+}
+
+func NewUsecase(l *zap.Logger, t *client.TokenRepo, g *client.GmailClient) *usecase.Usecase {
+	return &usecase.Usecase{Logger: l, TokenRepo: t, GmailClient: g}
+}
+
+func NewServer(l *zap.Logger, port string, uc *usecase.Usecase) *server.Server {
+	return &server.Server{Logger: l, Port: port, Usecase: uc}
 }

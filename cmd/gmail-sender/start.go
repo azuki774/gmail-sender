@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"gmail-sender/internal/factory"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -8,8 +11,10 @@ import (
 )
 
 type StartOption struct {
-	Logger *zap.Logger
-	Port   string
+	Logger    *zap.Logger
+	Port      string
+	TokenHost string
+	TokenPort string
 }
 
 var startOpt StartOption
@@ -39,12 +44,24 @@ to quickly create a Cobra application.`,
 }
 
 func start(opts *StartOption) error {
-	return nil
+	l, err := factory.NewLogger()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	tr := factory.NewTokenRepo(opts.TokenHost, opts.TokenPort)
+	gc := factory.NewGmailClient()
+	uc := factory.NewUsecase(l, tr, gc)
+	sv := factory.NewServer(l, opts.Port, uc)
+	ctx := context.Background()
+	return sv.Start(ctx)
 }
 
 func init() {
 	rootCmd.AddCommand(startCmd)
 	startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	startCmd.Flags().StringVar(&startOpt.Port, "port", "80", "DB Host")
-
+	startCmd.Flags().StringVar(&startOpt.Port, "port", "80", "listen port")
+	startCmd.Flags().StringVar(&startOpt.TokenHost, "token-host", "token-repository-api", "token-repository host")
+	startCmd.Flags().StringVar(&startOpt.TokenPort, "token-port", "80", "token-repository port")
 }

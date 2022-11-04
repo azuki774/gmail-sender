@@ -6,6 +6,14 @@ const (
 	oauth2Endpoint = ""
 )
 
+type RefreshRequest struct {
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RefreshToken string `json:"refresh_token"`
+	RedirectUri  string `json:"redirect_uri"`
+	GrantType    string `json:"grant_type"`
+}
+
 type RefreshResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`

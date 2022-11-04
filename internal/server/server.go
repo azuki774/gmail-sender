@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"gmail-sender/internal/usecase"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,8 +14,9 @@ import (
 )
 
 type Server struct {
-	Logger *zap.Logger
-	Port   string
+	Logger  *zap.Logger
+	Port    string
+	Usecase *usecase.Usecase
 }
 
 func (s *Server) Start(ctx context.Context) error {
@@ -28,6 +30,8 @@ func (s *Server) Start(ctx context.Context) error {
 
 	ctxIn, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
+
+	s.Logger.Info("server start", zap.String("port", s.Port))
 
 	var errCh = make(chan error)
 	go func() {
@@ -52,6 +56,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 func (s *Server) addRecordFunc(r *mux.Router) {
 	r.HandleFunc("/", s.rootHandler)
+	r.HandleFunc("/refresh", s.refreshHandler).Methods("PUT")
 	r.Use(s.middlewareLogging)
 
 }
