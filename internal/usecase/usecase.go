@@ -22,7 +22,7 @@ type TokenRepo interface {
 
 type GmailClient interface {
 	FetchNewAccessToken(refreshToken string) (resp model.RefreshResponse, err error)
-	Send(b []byte) (err error)
+	Send(context.Context, []byte) (err error)
 	SetToken(tk oauth2.Token)
 }
 
@@ -47,7 +47,7 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 		"Subject: TestSubject\r\n" +
 		"\r\n" + "TestBody")
 
-	err = u.GmailClient.Send(b)
+	err = u.GmailClient.Send(ctx, b)
 	if err != nil {
 		return err
 	}

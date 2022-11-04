@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -50,8 +51,8 @@ func (g *GmailClient) FetchNewAccessToken(refreshToken string) (resp model.Refre
 	return resp, nil
 }
 
-func (g *GmailClient) Send(b []byte) (err error) {
-	client := g.Conf.Client(oauth2.NoContext, &g.Token)
+func (g *GmailClient) Send(ctx context.Context, b []byte) (err error) {
+	client := g.Conf.Client(ctx, &g.Token)
 	srv, err := gmail.New(client)
 	if err != nil {
 		log.Fatalf("Unable to retrieve gmail Client %v", err)
