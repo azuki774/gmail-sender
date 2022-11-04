@@ -33,24 +33,10 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 	}
 
 	if oa.ExpiredAt.Before(time.Now()) || oa.AccessToken == "" {
-		// access token refresh
-		t := time.Now()
-		resp, err := u.GmailClient.FetchNewAccessToken(oa.RefreshToken)
+		err = u.RefineNewToken(ctx)
 		if err != nil {
 			return err
 		}
-
-		oau := model.NewOAuth2Update(oa, resp, t)
-		err = u.TokenRepo.Notify(oau)
-		if err != nil {
-			return err
-		}
-
-		u.GmailClient.SetToken(oauth2.Token{
-			AccessToken: resp.AccessToken,
-			TokenType:   "Bearer",
-			Expiry:      t.Add(time.Duration(resp.ExpiresIn) * time.Second),
-		})
 	}
 
 	b := []byte("From: 'me'\r\n" +
@@ -63,6 +49,34 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (u *Usecase) RefineNewToken(ctx context.Context) (err error) {
+	oa, err := u.TokenRepo.Get()
+	if err != nil {
+		return err
+	}
+
+	// access token refresh
+	t := time.Now()
+	resp, err := u.GmailClient.FetchNewAccessToken(oa.RefreshToken)
+	if err != nil {
+		return err
+	}
+
+	oau := model.NewOAuth2Update(oa, resp, t)
+	err = u.TokenRepo.Notify(oau)
+	if err != nil {
+		return err
+	}
+
+	u.GmailClient.SetToken(oauth2.Token{
+		AccessToken: resp.AccessToken,
+		TokenType:   "Bearer",
+		Expiry:      t.Add(time.Duration(resp.ExpiresIn) * time.Second),
+	})
 
 	return nil
 }

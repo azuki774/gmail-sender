@@ -22,7 +22,7 @@ type GmailClient struct {
 }
 
 func (g *GmailClient) FetchNewAccessToken(refreshToken string) (resp model.RefreshResponse, err error) {
-	endpoint := ""
+	endpoint := "https://www.googleapis.com/oauth2/v4/token"
 	reqbody := fmt.Sprintf("refresh_token=%s&grant_type=refresh_token", refreshToken)
 	reader := strings.NewReader(reqbody)
 
