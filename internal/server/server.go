@@ -31,6 +31,8 @@ func (s *Server) Start(ctx context.Context) error {
 	ctxIn, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
+	s.Logger.Info("server start", zap.String("port", s.Port))
+
 	var errCh = make(chan error)
 	go func() {
 		errCh <- server.ListenAndServe()
