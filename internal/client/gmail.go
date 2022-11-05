@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -22,17 +23,31 @@ type GmailClient struct {
 
 func (g *GmailClient) FetchNewAccessToken(refreshToken string) (resp model.RefreshResponse, err error) {
 	endpoint := "https://www.googleapis.com/oauth2/v4/token"
-	reqbody := fmt.Sprintf("refresh_token=%s&grant_type=refresh_token&client_id=%s&client_secret=%s", refreshToken, g.Conf.ClientID, g.Conf.ClientSecret)
-	reader := strings.NewReader(reqbody)
 
-	req, err := http.NewRequest("POST", endpoint, reader)
+	reqData := model.RefreshRequest{
+		ClientId:     g.Conf.ClientID,
+		ClientSecret: g.Conf.ClientSecret,
+		RefreshToken: refreshToken,
+		RedirectUri:  g.Conf.RedirectURL,
+		GrantType:    "refresh_token",
+	}
+	jsonData, err := json.Marshal(reqData)
+	if err != nil {
+		return model.RefreshResponse{}, err
+	}
+
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
 	client := http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		return model.RefreshResponse{}, err
 	}
 	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
+		resBody, _ := io.ReadAll(res.Body)
+		fmt.Println(string(resBody))
 		return model.RefreshResponse{}, fmt.Errorf("unexpected status code: %v", res.StatusCode)
 	}
 	resBody, err := io.ReadAll(res.Body)
