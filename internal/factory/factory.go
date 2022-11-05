@@ -48,9 +48,7 @@ func NewGmailConf() *oauth2.Config {
 
 func NewGmailClient() *client.GmailClient {
 	gc := client.GmailClient{
-		AppKey:    os.Getenv("APP_KEY"),
-		AppSecret: os.Getenv("APP_SECRET"),
-		Conf:      NewGmailConf(),
+		Conf: NewGmailConf(),
 	}
 	return &gc
 }

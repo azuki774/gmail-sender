@@ -16,15 +16,13 @@ import (
 )
 
 type GmailClient struct {
-	AppKey    string
-	AppSecret string
-	Conf      *oauth2.Config
-	Token     oauth2.Token
+	Conf  *oauth2.Config
+	Token oauth2.Token
 }
 
 func (g *GmailClient) FetchNewAccessToken(refreshToken string) (resp model.RefreshResponse, err error) {
 	endpoint := "https://www.googleapis.com/oauth2/v4/token"
-	reqbody := fmt.Sprintf("refresh_token=%s&grant_type=refresh_token&client_id=%s&client_secret=%s", refreshToken, g.AppKey, g.AppSecret)
+	reqbody := fmt.Sprintf("refresh_token=%s&grant_type=refresh_token&client_id=%s&client_secret=%s", refreshToken, g.Conf.ClientID, g.Conf.ClientSecret)
 	reader := strings.NewReader(reqbody)
 
 	req, err := http.NewRequest("POST", endpoint, reader)
