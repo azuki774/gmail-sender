@@ -55,11 +55,12 @@ func (u *Usecase) Send(ctx context.Context, mc model.MailContent) (err error) {
 	if mc.Title != "" {
 		cont.Title = mc.Title
 	}
+	cont.Body = mc.Body
 
 	contstr := fmt.Sprintf("From: %s\r\n"+
 		"To: %s\r\n"+
 		"Subject: %s\r\n"+
-		"\r\n"+"TestBody", cont.From, cont.To, cont.Title)
+		"\r\n"+cont.Body, cont.From, cont.To, cont.Title)
 
 	b := []byte(contstr)
 
