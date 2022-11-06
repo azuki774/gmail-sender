@@ -20,6 +20,11 @@ type Server struct {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	err := s.Usecase.RefineNewToken(ctx)
+	if err != nil {
+		return err
+	}
+
 	router := mux.NewRouter()
 	s.addRecordFunc(router)
 
@@ -44,7 +49,7 @@ func (s *Server) Start(ctx context.Context) error {
 		return nerr
 	}
 
-	err := <-errCh
+	err = <-errCh
 	if err != nil && err != http.ErrServerClosed {
 		s.Logger.Error("failed to close server", zap.Error(err))
 		return err
@@ -57,6 +62,7 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) addRecordFunc(r *mux.Router) {
 	r.HandleFunc("/", s.rootHandler)
 	r.HandleFunc("/refresh", s.refreshHandler).Methods("PUT")
+	r.HandleFunc("/send", s.sendHandler).Methods("POST")
 	r.Use(s.middlewareLogging)
 
 }

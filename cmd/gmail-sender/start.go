@@ -52,9 +52,12 @@ func start(opts *StartOption) error {
 
 	tr := factory.NewTokenRepo(opts.TokenHost, opts.TokenPort)
 	gc := factory.NewGmailClient()
-	uc := factory.NewUsecase(l, tr, gc)
+	df := factory.NewDefaultContent()
+	uc := factory.NewUsecase(l, tr, gc, df)
 	sv := factory.NewServer(l, opts.Port, uc)
 	ctx := context.Background()
+
+	uc.Logger.Info("load setting", zap.String("default_from", uc.DefaultContent().From), zap.String("default_to", uc.DefaultContent().To), zap.String("default_title", uc.DefaultContent().Title))
 	return sv.Start(ctx)
 }
 

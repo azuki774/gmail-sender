@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"gmail-sender/internal/model"
 	"time"
 
@@ -10,9 +11,10 @@ import (
 )
 
 type Usecase struct {
-	Logger      *zap.Logger
-	TokenRepo   TokenRepo
-	GmailClient GmailClient
+	Logger         *zap.Logger
+	TokenRepo      TokenRepo
+	GmailClient    GmailClient
+	DefaultContent func() model.MailContent
 }
 
 type TokenRepo interface {
@@ -26,7 +28,7 @@ type GmailClient interface {
 	SetToken(tk oauth2.Token)
 }
 
-func (u *Usecase) Send(ctx context.Context) (err error) {
+func (u *Usecase) Send(ctx context.Context, mc model.MailContent) (err error) {
 	oa, err := u.TokenRepo.Get()
 	if err != nil {
 		u.Logger.Error("failed to get token from DB", zap.String("err", err.Error()), zap.Error(err))
@@ -43,17 +45,31 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 		}
 	}
 
-	b := []byte("From: 'me'\r\n" +
-		"reply-to: azuki774s@gmail.com\r\n" +
-		"To: azuki774s@gmail.com\r\n" +
-		"Subject: TestSubject\r\n" +
-		"\r\n" + "TestBody")
+	cont := u.DefaultContent()
+	if mc.To != "" {
+		cont.To = mc.To
+	}
+	if mc.From != "" {
+		cont.From = mc.From
+	}
+	if mc.Title != "" {
+		cont.Title = mc.Title
+	}
+	cont.Body = mc.Body
+
+	contstr := fmt.Sprintf("From: %s\r\n"+
+		"To: %s\r\n"+
+		"Subject: %s\r\n"+
+		"\r\n"+cont.Body, cont.From, cont.To, cont.Title)
+
+	b := []byte(contstr)
 
 	err = u.GmailClient.Send(ctx, b)
 	if err != nil {
 		return err
 	}
 
+	u.Logger.Info("send email sucessfully")
 	return nil
 }
 
