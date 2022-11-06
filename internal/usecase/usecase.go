@@ -11,9 +11,10 @@ import (
 )
 
 type Usecase struct {
-	Logger      *zap.Logger
-	TokenRepo   TokenRepo
-	GmailClient GmailClient
+	Logger         *zap.Logger
+	TokenRepo      TokenRepo
+	GmailClient    GmailClient
+	DefaultContent func() model.MailContent
 }
 
 type TokenRepo interface {
@@ -44,16 +45,30 @@ func (u *Usecase) Send(ctx context.Context, mc model.MailContent) (err error) {
 		}
 	}
 
-	b := []byte(fmt.Sprintf("From: 'me'\r\n" +
-		"To: azuki774s@gmail.com\r\n" +
-		"Subject: TestSubject\r\n" +
-		"\r\n" + "TestBody"))
+	cont := u.DefaultContent()
+	if mc.To != "" {
+		cont.To = mc.To
+	}
+	if mc.From != "" {
+		cont.From = mc.From
+	}
+	if mc.Title != "" {
+		cont.Title = mc.Title
+	}
+
+	contstr := fmt.Sprintf("From: %s\r\n"+
+		"To: %s\r\n"+
+		"Subject: %s\r\n"+
+		"\r\n"+"TestBody", cont.From, cont.To, cont.Title)
+
+	b := []byte(contstr)
 
 	err = u.GmailClient.Send(ctx, b)
 	if err != nil {
 		return err
 	}
 
+	u.Logger.Info("send email sucessfully")
 	return nil
 }
 

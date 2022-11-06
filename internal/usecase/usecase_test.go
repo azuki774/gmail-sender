@@ -20,9 +20,10 @@ func NewTestLogger() *zap.Logger {
 
 func TestUsecase_Send(t *testing.T) {
 	type fields struct {
-		Logger      *zap.Logger
-		TokenRepo   TokenRepo
-		GmailClient GmailClient
+		Logger         *zap.Logger
+		TokenRepo      TokenRepo
+		GmailClient    GmailClient
+		DefaultContent func() model.MailContent
 	}
 	type args struct {
 		ctx context.Context
@@ -40,6 +41,13 @@ func TestUsecase_Send(t *testing.T) {
 				Logger:      NewTestLogger(),
 				TokenRepo:   &MockTokenRepo{},
 				GmailClient: &MockGmailClient{},
+				DefaultContent: func() model.MailContent {
+					return model.MailContent{
+						From:  "'me'",
+						To:    "TO",
+						Title: "TITLE",
+					}
+				},
 			},
 			args: args{
 				ctx: context.Background(),
@@ -52,6 +60,13 @@ func TestUsecase_Send(t *testing.T) {
 				Logger:      NewTestLogger(),
 				TokenRepo:   &MockTokenRepo{ErrGet: true},
 				GmailClient: &MockGmailClient{},
+				DefaultContent: func() model.MailContent {
+					return model.MailContent{
+						From:  "'me'",
+						To:    "TO",
+						Title: "TITLE",
+					}
+				},
 			},
 			args: args{
 				ctx: context.Background(),
@@ -64,6 +79,13 @@ func TestUsecase_Send(t *testing.T) {
 				Logger:      NewTestLogger(),
 				TokenRepo:   &MockTokenRepo{},
 				GmailClient: &MockGmailClient{ErrFetchNewAccessToken: true},
+				DefaultContent: func() model.MailContent {
+					return model.MailContent{
+						From:  "'me'",
+						To:    "TO",
+						Title: "TITLE",
+					}
+				},
 			},
 			args: args{
 				ctx: context.Background(),
@@ -76,6 +98,13 @@ func TestUsecase_Send(t *testing.T) {
 				Logger:      NewTestLogger(),
 				TokenRepo:   &MockTokenRepo{},
 				GmailClient: &MockGmailClient{ErrSend: true},
+				DefaultContent: func() model.MailContent {
+					return model.MailContent{
+						From:  "'me'",
+						To:    "TO",
+						Title: "TITLE",
+					}
+				},
 			},
 			args: args{
 				ctx: context.Background(),
@@ -86,9 +115,10 @@ func TestUsecase_Send(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &Usecase{
-				Logger:      tt.fields.Logger,
-				TokenRepo:   tt.fields.TokenRepo,
-				GmailClient: tt.fields.GmailClient,
+				Logger:         tt.fields.Logger,
+				TokenRepo:      tt.fields.TokenRepo,
+				GmailClient:    tt.fields.GmailClient,
+				DefaultContent: tt.fields.DefaultContent,
 			}
 			if err := u.Send(tt.args.ctx, tt.args.mc); (err != nil) != tt.wantErr {
 				t.Errorf("Usecase.Send() error = %v, wantErr %v", err, tt.wantErr)
