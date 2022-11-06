@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"gmail-sender/internal/model"
 	"time"
 
@@ -26,7 +27,7 @@ type GmailClient interface {
 	SetToken(tk oauth2.Token)
 }
 
-func (u *Usecase) Send(ctx context.Context) (err error) {
+func (u *Usecase) Send(ctx context.Context, mc model.MailContent) (err error) {
 	oa, err := u.TokenRepo.Get()
 	if err != nil {
 		u.Logger.Error("failed to get token from DB", zap.String("err", err.Error()), zap.Error(err))
@@ -43,11 +44,10 @@ func (u *Usecase) Send(ctx context.Context) (err error) {
 		}
 	}
 
-	b := []byte("From: 'me'\r\n" +
-		"reply-to: azuki774s@gmail.com\r\n" +
+	b := []byte(fmt.Sprintf("From: 'me'\r\n" +
 		"To: azuki774s@gmail.com\r\n" +
 		"Subject: TestSubject\r\n" +
-		"\r\n" + "TestBody")
+		"\r\n" + "TestBody"))
 
 	err = u.GmailClient.Send(ctx, b)
 	if err != nil {

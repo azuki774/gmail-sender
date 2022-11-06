@@ -37,6 +37,13 @@ type OAuth2Update struct {
 	RequestAt    time.Time `json:"requested_at"`
 }
 
+type MailContent struct {
+	From  string
+	To    string
+	Title string
+	Body  string
+}
+
 func NewOAuth2Update(prevToken OAuth2Get, refreshResp RefreshResponse, RequestAt time.Time) (oau OAuth2Update) {
 	oau.TokenName = prevToken.TokenName
 	oau.AccessToken = refreshResp.AccessToken

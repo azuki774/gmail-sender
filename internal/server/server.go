@@ -57,6 +57,7 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) addRecordFunc(r *mux.Router) {
 	r.HandleFunc("/", s.rootHandler)
 	r.HandleFunc("/refresh", s.refreshHandler).Methods("PUT")
+	r.HandleFunc("/send", s.sendHandler).Methods("POST")
 	r.Use(s.middlewareLogging)
 
 }
