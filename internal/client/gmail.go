@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"gmail-sender/internal/model"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -67,7 +66,7 @@ func (g *GmailClient) Send(ctx context.Context, b []byte) (err error) {
 	client := g.Conf.Client(ctx, &g.Token)
 	srv, err := gmail.New(client)
 	if err != nil {
-		log.Fatalf("Unable to retrieve gmail Client %v", err)
+		return fmt.Errorf("unable to retrieve gmail Client: %w", err)
 	}
 
 	var message gmail.Message
@@ -78,7 +77,7 @@ func (g *GmailClient) Send(ctx context.Context, b []byte) (err error) {
 
 	_, err = srv.Users.Messages.Send("me", &message).Do()
 	if err != nil {
-		fmt.Printf("%v", err)
+		return fmt.Errorf("failed to send email: %w", err)
 	}
 
 	return nil
